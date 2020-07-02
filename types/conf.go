@@ -117,6 +117,13 @@ func LoadDelegateNetConf(bytes []byte, net *NetworkSelectionElement, deviceID st
 		if net.GatewayRequest != nil {
 			delegateConf.GatewayRequest = append(delegateConf.GatewayRequest, net.GatewayRequest...)
 		}
+		if net.DeviceID != "" {
+			if deviceID != "" {
+				logging.Debugf("Warning: Both RuntimeConfig and ResourceMap provide deviceID. Ignoring RuntimeConfig")
+			} else {
+				delegateConf.DeviceID = net.DeviceID
+			}
+		}
 	}
 
 	delegateConf.Bytes = bytes
@@ -145,6 +152,9 @@ func mergeCNIRuntimeConfig(runtimeConfig *RuntimeConfig, delegate *DelegateNetCo
 		}
 		if delegate.MacRequest != "" {
 			runtimeConfig.Mac = delegate.MacRequest
+		}
+		if delegate.DeviceID != "" {
+			runtimeConfig.DeviceID = delegate.DeviceID
 		}
 	}
 
@@ -189,6 +199,9 @@ func CreateCNIRuntimeConf(args *skel.CmdArgs, k8sArgs *K8sArgs, ifName string, r
 		}
 		if len(delegateRc.Mac) != 0 {
 			capabilityArgs["mac"] = delegateRc.Mac
+		}
+		if delegateRc.DeviceID != "" {
+			capabilityArgs["deviceID"] = delegateRc.DeviceID
 		}
 		rt.CapabilityArgs = capabilityArgs
 	}
