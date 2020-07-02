@@ -54,7 +54,7 @@ func LoadDelegateNetConfList(bytes []byte, delegateConf *DelegateNetConf) error 
 }
 
 // LoadDelegateNetConf converts raw CNI JSON into a DelegateNetConf structure
-func LoadDelegateNetConf(bytes []byte, net *NetworkSelectionElement, deviceID string) (*DelegateNetConf, error) {
+func LoadDelegateNetConf(bytes []byte, net *NetworkSelectionElement, deviceID string, resourceName string) (*DelegateNetConf, error) {
 	var err error
 	logging.Debugf("LoadDelegateNetConf: %s, %v, %s", string(bytes), net, deviceID)
 
@@ -69,6 +69,7 @@ func LoadDelegateNetConf(bytes []byte, net *NetworkSelectionElement, deviceID st
 			return nil, logging.Errorf("LoadDelegateNetConf: failed with: %v", err)
 		}
 		if deviceID != "" {
+			// TODO: Add resourceName to conflist
 			bytes, err = addDeviceIDInConfList(bytes, deviceID)
 			if err != nil {
 				return nil, logging.Errorf("LoadDelegateNetConf: failed to add deviceID in NetConfList bytes: %v", err)
@@ -82,11 +83,13 @@ func LoadDelegateNetConf(bytes []byte, net *NetworkSelectionElement, deviceID st
 		}
 	} else {
 		if deviceID != "" {
-			bytes, err = delegateAddDeviceID(bytes, deviceID)
+			bytes, err = delegateAddDeviceID(bytes, deviceID, resourceName)
 			if err != nil {
 				return nil, logging.Errorf("LoadDelegateNetConf: failed to add deviceID in NetConf bytes: %v", err)
 			}
+			delegateConf.ResourceName = resourceName
 		}
+
 		if net != nil && net.CNIArgs != nil {
 			bytes, err = addCNIArgsInConfig(bytes, net.CNIArgs)
 			if err != nil {
@@ -299,7 +302,7 @@ func LoadNetConf(bytes []byte) (*NetConf, error) {
 			if err != nil {
 				return nil, logging.Errorf("LoadNetConf: error marshalling delegate %d config: %v", idx, err)
 			}
-			delegateConf, err := LoadDelegateNetConf(bytes, nil, "")
+			delegateConf, err := LoadDelegateNetConf(bytes, nil, "", "")
 			if err != nil {
 				return nil, logging.Errorf("LoadNetConf: failed to load delegate %d config: %v", idx, err)
 			}
@@ -322,7 +325,7 @@ func (n *NetConf) AddDelegates(newDelegates []*DelegateNetConf) error {
 }
 
 // delegateAddDeviceID injects deviceID information in delegate bytes
-func delegateAddDeviceID(inBytes []byte, deviceID string) ([]byte, error) {
+func delegateAddDeviceID(inBytes []byte, deviceID string, resourceName string) ([]byte, error) {
 	var rawConfig map[string]interface{}
 	var err error
 
@@ -333,6 +336,8 @@ func delegateAddDeviceID(inBytes []byte, deviceID string) ([]byte, error) {
 	// Inject deviceID
 	rawConfig["deviceID"] = deviceID
 	rawConfig["pciBusID"] = deviceID
+	rawConfig["resourceName"] = resourceName
+
 	configBytes, err := json.Marshal(rawConfig)
 	if err != nil {
 		return nil, logging.Errorf("delegateAddDeviceID: failed to re-marshal Spec.Config: %v", err)

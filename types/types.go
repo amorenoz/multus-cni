@@ -108,6 +108,7 @@ type DelegateNetConf struct {
 	// Conflist plugin is only used internal housekeeping
 	ConfListPlugin bool   `json:"-"`
 	DeviceID       string `json:"deviceID,omitempty"`
+	ResourceName   string `json:"resourceName,omitempty"`
 
 	// Raw JSON
 	Bytes []byte
