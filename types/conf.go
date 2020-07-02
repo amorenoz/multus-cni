@@ -19,6 +19,8 @@ import (
 	"encoding/json"
 	"net"
 
+	nettypes "github.com/amorenoz/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
+	netutils "github.com/amorenoz/network-attachment-definition-client/pkg/utils"
 	"github.com/containernetworking/cni/libcni"
 	"github.com/containernetworking/cni/pkg/skel"
 	"github.com/containernetworking/cni/pkg/types/current"
@@ -88,6 +90,7 @@ func LoadDelegateNetConf(bytes []byte, net *NetworkSelectionElement, deviceID st
 				return nil, logging.Errorf("LoadDelegateNetConf: failed to add deviceID in NetConf bytes: %v", err)
 			}
 			delegateConf.ResourceName = resourceName
+			delegateConf.DeviceID = deviceID
 		}
 
 		if net != nil && net.CNIArgs != nil {
@@ -475,4 +478,21 @@ func CheckSystemNamespaces(namespace string, systemNamespaces []string) bool {
 		}
 	}
 	return false
+}
+
+func GetDelegateDeviceInfo(delegate *DelegateNetConf) (*nettypes.DeviceInfo, error) {
+	if delegate.Name == "" {
+		// No device info for default network
+		return nil, nil
+	}
+	if delegate.DeviceID == "" {
+		// no deviceid was given to the cni but it may have created a default device
+		return netutils.LoadDefaultDeviceInfoFromCNI(delegate.Name)
+	} else {
+		if delegate.ResourceName == "" {
+			return netutils.LoadDeviceInfoFromCNI(delegate.Name, delegate.DeviceID)
+		} else {
+			return netutils.LoadDeviceInfoFromDP(delegate.ResourceName, delegate.DeviceID)
+		}
+	}
 }
