@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net"
 
+	nettypes "github.com/amorenoz/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	netutils "github.com/amorenoz/network-attachment-definition-client/pkg/utils"
 	"github.com/containernetworking/cni/libcni"
 	"github.com/containernetworking/cni/pkg/skel"
@@ -221,7 +222,7 @@ func CreateCNIRuntimeConf(args *skel.CmdArgs, k8sArgs *K8sArgs, ifName string, r
 		if delegateRc.DPDeviceFile != "" {
 			capabilityArgs["DPDeviceFile"] = delegateRc.DPDeviceFile
 		}
-		if delegateRc.DPDeviceFile != "" {
+		if delegateRc.CNIDeviceFile != "" {
 			capabilityArgs["CNIDeviceFile"] = delegateRc.CNIDeviceFile
 		}
 		rt.CapabilityArgs = capabilityArgs
@@ -492,4 +493,25 @@ func CheckSystemNamespaces(namespace string, systemNamespaces []string) bool {
 		}
 	}
 	return false
+}
+
+func GetDelegateDeviceInfo(delegate *DelegateNetConf, runtimeConf *libcni.RuntimeConf) (*nettypes.DeviceInfo, error) {
+	if delegate.Name == "" {
+		// No device info for default network
+		return nil, nil
+	}
+
+	if delegate.ResourceName != "" {
+		// Device created by DP
+		return netutils.LoadDeviceInfoFromDP(delegate.ResourceName, delegate.DeviceID)
+	} else {
+		// In the future we might want read both and concatenate them
+		// Device created by CNI
+		if info, ok := runtimeConf.CapabilityArgs["CNIDeviceFile"]; ok {
+			if infostr, ok := info.(string); ok {
+				return netutils.LoadDeviceInfo(infostr)
+			}
+		}
+	}
+	return nil, nil
 }
