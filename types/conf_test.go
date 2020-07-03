@@ -22,12 +22,12 @@ import (
 	"os"
 	"testing"
 
+	netutils "github.com/amorenoz/network-attachment-definition-client/pkg/utils"
 	"github.com/containernetworking/cni/pkg/skel"
 	types020 "github.com/containernetworking/cni/pkg/types/020"
 	"github.com/containernetworking/plugins/pkg/ns"
 	"github.com/containernetworking/plugins/pkg/testutils"
 	testhelpers "gopkg.in/intel/multus-cni.v3/testing"
-	netutils "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/utils"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

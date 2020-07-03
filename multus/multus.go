@@ -30,6 +30,8 @@ import (
 	"strings"
 	"time"
 
+	nettypes "github.com/amorenoz/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
+	nadutils "github.com/amorenoz/network-attachment-definition-client/pkg/utils"
 	"github.com/containernetworking/cni/libcni"
 	"github.com/containernetworking/cni/pkg/invoke"
 	"github.com/containernetworking/cni/pkg/skel"
@@ -37,13 +39,11 @@ import (
 	cnicurrent "github.com/containernetworking/cni/pkg/types/current"
 	cniversion "github.com/containernetworking/cni/pkg/version"
 	"github.com/containernetworking/plugins/pkg/ns"
+	"github.com/vishvananda/netlink"
 	k8s "gopkg.in/intel/multus-cni.v3/k8sclient"
 	"gopkg.in/intel/multus-cni.v3/logging"
 	"gopkg.in/intel/multus-cni.v3/netutils"
 	"gopkg.in/intel/multus-cni.v3/types"
-	nettypes "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
-	nadutils "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/utils"
-	"github.com/vishvananda/netlink"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
