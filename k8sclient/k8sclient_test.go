@@ -28,9 +28,9 @@ import (
 	"github.com/containernetworking/cni/pkg/skel"
 	"gopkg.in/intel/multus-cni.v3/types"
 
-	nettypes "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
-	netfake "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/client/clientset/versioned/fake"
-	netutils "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/utils"
+	nettypes "github.com/amorenoz/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
+	netfake "github.com/amorenoz/network-attachment-definition-client/pkg/client/clientset/versioned/fake"
+	netutils "github.com/amorenoz/network-attachment-definition-client/pkg/utils"
 
 	"k8s.io/client-go/kubernetes/fake"
 

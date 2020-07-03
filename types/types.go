@@ -57,11 +57,13 @@ type NetConf struct {
 
 // RuntimeConfig specifies CNI RuntimeConfig
 type RuntimeConfig struct {
-	PortMaps  []*PortMapEntry `json:"portMappings,omitempty"`
-	Bandwidth *BandwidthEntry `json:"bandwidth,omitempty"`
-	IPs       []string        `json:"ips,omitempty"`
-	Mac       string          `json:"mac,omitempty"`
-	DeviceID  string          `json:"deviceID,omitempty"`
+	PortMaps      []*PortMapEntry `json:"portMappings,omitempty"`
+	Bandwidth     *BandwidthEntry `json:"bandwidth,omitempty"`
+	IPs           []string        `json:"ips,omitempty"`
+	Mac           string          `json:"mac,omitempty"`
+	DeviceID      string          `json:"deviceID,omitempty"`
+	DPDeviceFile  string          `json:"DPDeviceFile,omitempty"`
+	CNIDeviceFile string          `json:"CNIDeviceFile,omitempty"`
 }
 
 // PortMapEntry for CNI PortMapEntry
@@ -108,6 +110,7 @@ type DelegateNetConf struct {
 	// Conflist plugin is only used internal housekeeping
 	ConfListPlugin bool   `json:"-"`
 	DeviceID       string `json:"deviceID,omitempty"`
+	ResourceName   string `json:"resourceName,omitempty"`
 
 	// Raw JSON
 	Bytes []byte

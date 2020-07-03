@@ -17,8 +17,10 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"net"
 
+	netutils "github.com/amorenoz/network-attachment-definition-client/pkg/utils"
 	"github.com/containernetworking/cni/libcni"
 	"github.com/containernetworking/cni/pkg/skel"
 	"github.com/containernetworking/cni/pkg/types/current"
@@ -54,7 +56,7 @@ func LoadDelegateNetConfList(bytes []byte, delegateConf *DelegateNetConf) error 
 }
 
 // LoadDelegateNetConf converts raw CNI JSON into a DelegateNetConf structure
-func LoadDelegateNetConf(bytes []byte, net *NetworkSelectionElement, deviceID string) (*DelegateNetConf, error) {
+func LoadDelegateNetConf(bytes []byte, net *NetworkSelectionElement, deviceID string, resourceName string) (*DelegateNetConf, error) {
 	var err error
 	logging.Debugf("LoadDelegateNetConf: %s, %v, %s", string(bytes), net, deviceID)
 
@@ -69,6 +71,7 @@ func LoadDelegateNetConf(bytes []byte, net *NetworkSelectionElement, deviceID st
 			return nil, logging.Errorf("LoadDelegateNetConf: failed with: %v", err)
 		}
 		if deviceID != "" {
+			// TODO: Add resourceName to conflist
 			bytes, err = addDeviceIDInConfList(bytes, deviceID)
 			if err != nil {
 				return nil, logging.Errorf("LoadDelegateNetConf: failed to add deviceID in NetConfList bytes: %v", err)
@@ -86,7 +89,11 @@ func LoadDelegateNetConf(bytes []byte, net *NetworkSelectionElement, deviceID st
 			if err != nil {
 				return nil, logging.Errorf("LoadDelegateNetConf: failed to add deviceID in NetConf bytes: %v", err)
 			}
+			// Save them for housekeeping
+			delegateConf.ResourceName = resourceName
+			delegateConf.DeviceID = deviceID
 		}
+
 		if net != nil && net.CNIArgs != nil {
 			bytes, err = addCNIArgsInConfig(bytes, net.CNIArgs)
 			if err != nil {
@@ -156,6 +163,9 @@ func mergeCNIRuntimeConfig(runtimeConfig *RuntimeConfig, delegate *DelegateNetCo
 		if delegate.DeviceID != "" {
 			runtimeConfig.DeviceID = delegate.DeviceID
 		}
+		if delegate.ResourceName != "" && delegate.DeviceID != "" {
+			runtimeConfig.DPDeviceFile = netutils.GetDPDeviceInfoFile(delegate.ResourceName, delegate.DeviceID)
+		}
 	}
 
 	return runtimeConfig
@@ -168,6 +178,11 @@ func CreateCNIRuntimeConf(args *skel.CmdArgs, k8sArgs *K8sArgs, ifName string, r
 	delegateRc := rc
 	if delegate != nil {
 		delegateRc = mergeCNIRuntimeConfig(delegateRc, delegate)
+		if delegateRc.CNIDeviceFile == "" {
+			autoDeviceInfo := fmt.Sprintf("cni-%s-%s_%s", delegate.Name, args.ContainerID, ifName)
+			logging.Debugf("Adding auto-generated CNIDeviceFile: %s", autoDeviceInfo)
+			delegateRc.CNIDeviceFile = autoDeviceInfo
+		}
 	}
 
 	// In part, adapted from K8s pkg/kubelet/dockershim/network/cni/cni.go#buildCNIRuntimeConf
@@ -202,6 +217,12 @@ func CreateCNIRuntimeConf(args *skel.CmdArgs, k8sArgs *K8sArgs, ifName string, r
 		}
 		if delegateRc.DeviceID != "" {
 			capabilityArgs["deviceID"] = delegateRc.DeviceID
+		}
+		if delegateRc.DPDeviceFile != "" {
+			capabilityArgs["DPDeviceFile"] = delegateRc.DPDeviceFile
+		}
+		if delegateRc.DPDeviceFile != "" {
+			capabilityArgs["CNIDeviceFile"] = delegateRc.CNIDeviceFile
 		}
 		rt.CapabilityArgs = capabilityArgs
 	}
@@ -299,7 +320,7 @@ func LoadNetConf(bytes []byte) (*NetConf, error) {
 			if err != nil {
 				return nil, logging.Errorf("LoadNetConf: error marshalling delegate %d config: %v", idx, err)
 			}
-			delegateConf, err := LoadDelegateNetConf(bytes, nil, "")
+			delegateConf, err := LoadDelegateNetConf(bytes, nil, "", "")
 			if err != nil {
 				return nil, logging.Errorf("LoadNetConf: failed to load delegate %d config: %v", idx, err)
 			}
@@ -333,6 +354,7 @@ func delegateAddDeviceID(inBytes []byte, deviceID string) ([]byte, error) {
 	// Inject deviceID
 	rawConfig["deviceID"] = deviceID
 	rawConfig["pciBusID"] = deviceID
+
 	configBytes, err := json.Marshal(rawConfig)
 	if err != nil {
 		return nil, logging.Errorf("delegateAddDeviceID: failed to re-marshal Spec.Config: %v", err)

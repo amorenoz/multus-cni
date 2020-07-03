@@ -27,6 +27,7 @@ import (
 	"strings"
 	"testing"
 
+	netfake "github.com/amorenoz/network-attachment-definition-client/pkg/client/clientset/versioned/fake"
 	"github.com/containernetworking/cni/pkg/skel"
 	cnitypes "github.com/containernetworking/cni/pkg/types"
 	types020 "github.com/containernetworking/cni/pkg/types/020"

@@ -30,6 +30,8 @@ import (
 	"strings"
 	"time"
 
+	nettypes "github.com/amorenoz/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
+	nadutils "github.com/amorenoz/network-attachment-definition-client/pkg/utils"
 	"github.com/containernetworking/cni/libcni"
 	"github.com/containernetworking/cni/pkg/invoke"
 	"github.com/containernetworking/cni/pkg/skel"
@@ -37,13 +39,11 @@ import (
 	cnicurrent "github.com/containernetworking/cni/pkg/types/current"
 	cniversion "github.com/containernetworking/cni/pkg/version"
 	"github.com/containernetworking/plugins/pkg/ns"
+	"github.com/vishvananda/netlink"
 	k8s "gopkg.in/intel/multus-cni.v3/k8sclient"
 	"gopkg.in/intel/multus-cni.v3/logging"
 	"gopkg.in/intel/multus-cni.v3/netutils"
 	"gopkg.in/intel/multus-cni.v3/types"
-	nettypes "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
-	nadutils "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/utils"
-	"github.com/vishvananda/netlink"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 )
@@ -583,7 +583,7 @@ func cmdAdd(args *skel.CmdArgs, exec invoke.Exec, kubeClient *k8s.ClientInfo) (c
 		//create the network status, only in case Multus as kubeconfig
 		if n.Kubeconfig != "" && kc != nil {
 			if !types.CheckSystemNamespaces(string(k8sArgs.K8S_POD_NAME), n.SystemNamespaces) {
-				delegateNetStatus, err := nadutils.CreateNetworkStatus(tmpResult, delegate.Conf.Name, delegate.MasterPlugin)
+				delegateNetStatus, err := nadutils.CreateNetworkStatus(tmpResult, delegate.Conf.Name, delegate.MasterPlugin, nil)
 				if err != nil {
 					return nil, cmdErr(k8sArgs, "error setting network status: %v", err)
 				}

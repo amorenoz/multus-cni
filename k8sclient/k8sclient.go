@@ -34,15 +34,15 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/klog"
 
+	nettypes "github.com/amorenoz/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
+	netclient "github.com/amorenoz/network-attachment-definition-client/pkg/client/clientset/versioned/typed/k8s.cni.cncf.io/v1"
+	netutils "github.com/amorenoz/network-attachment-definition-client/pkg/utils"
 	"github.com/containernetworking/cni/libcni"
 	"github.com/containernetworking/cni/pkg/skel"
 	cnitypes "github.com/containernetworking/cni/pkg/types"
 	"gopkg.in/intel/multus-cni.v3/kubeletclient"
 	"gopkg.in/intel/multus-cni.v3/logging"
 	"gopkg.in/intel/multus-cni.v3/types"
-	nettypes "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
-	netclient "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/client/clientset/versioned/typed/k8s.cni.cncf.io/v1"
-	netutils "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/utils"
 )
 
 const (
@@ -278,7 +278,7 @@ func getKubernetesDelegate(client *ClientInfo, net *types.NetworkSelectionElemen
 		return nil, resourceMap, err
 	}
 
-	delegate, err := types.LoadDelegateNetConf(configBytes, net, deviceID)
+	delegate, err := types.LoadDelegateNetConf(configBytes, net, deviceID, resourceName)
 	if err != nil {
 		return nil, resourceMap, err
 	}
@@ -495,7 +495,7 @@ func getDefaultNetDelegateCRD(client *ClientInfo, net, confdir, namespace string
 		return nil, err
 	}
 
-	delegate, err := types.LoadDelegateNetConf(configBytes, nil, "")
+	delegate, err := types.LoadDelegateNetConf(configBytes, nil, "", "")
 	if err != nil {
 		return nil, err
 	}
@@ -515,7 +515,7 @@ func getNetDelegate(client *ClientInfo, netname, confdir, namespace string) (*ty
 	var configBytes []byte
 	configBytes, err = netutils.GetCNIConfigFromFile(netname, confdir)
 	if err == nil {
-		delegate, err := types.LoadDelegateNetConf(configBytes, nil, "")
+		delegate, err := types.LoadDelegateNetConf(configBytes, nil, "", "")
 		if err != nil {
 			return nil, err
 		}
@@ -534,7 +534,7 @@ func getNetDelegate(client *ClientInfo, netname, confdir, namespace string) (*ty
 				var configBytes []byte
 				configBytes, err = netutils.GetCNIConfigFromFile("", netname)
 				if err == nil {
-					delegate, err := types.LoadDelegateNetConf(configBytes, nil, "")
+					delegate, err := types.LoadDelegateNetConf(configBytes, nil, "", "")
 					if err != nil {
 						return nil, err
 					}
