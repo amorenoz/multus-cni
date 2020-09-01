@@ -17,6 +17,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"net"
 
 	nettypes "github.com/amorenoz/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
@@ -174,6 +175,11 @@ func CreateCNIRuntimeConf(args *skel.CmdArgs, k8sArgs *K8sArgs, ifName string, r
 	delegateRc := rc
 	if delegate != nil {
 		delegateRc = mergeCNIRuntimeConfig(delegateRc, delegate)
+		if delegate.DeviceID == "" && delegateRc.DeviceID == "" {
+			autoDeviceID := fmt.Sprintf("%s_%s", args.ContainerID, ifName)
+			logging.Debugf("No DeviceID found. Adding auto-generated DeviceID: %s", autoDeviceID)
+			delegateRc.DeviceID = autoDeviceID
+		}
 	}
 
 	// In part, adapted from K8s pkg/kubelet/dockershim/network/cni/cni.go#buildCNIRuntimeConf
@@ -480,19 +486,25 @@ func CheckSystemNamespaces(namespace string, systemNamespaces []string) bool {
 	return false
 }
 
-func GetDelegateDeviceInfo(delegate *DelegateNetConf) (*nettypes.DeviceInfo, error) {
+func GetDelegateDeviceInfo(delegate *DelegateNetConf, runtimeConf *libcni.RuntimeConf) (*nettypes.DeviceInfo, error) {
 	if delegate.Name == "" {
 		// No device info for default network
 		return nil, nil
 	}
-	if delegate.DeviceID == "" {
-		// no deviceid was given to the cni but it may have created a default device
-		return netutils.LoadDefaultDeviceInfoFromCNI(delegate.Name)
+
+	if delegate.ResourceName != "" {
+		// Device created by DP
+		return netutils.LoadDeviceInfoFromDP(delegate.ResourceName, delegate.DeviceID)
 	} else {
-		if delegate.ResourceName == "" {
-			return netutils.LoadDeviceInfoFromCNI(delegate.Name, delegate.DeviceID)
+		// Device created by CNI
+		var cniDeviceID string
+		if delegate.DeviceID != "" {
+			cniDeviceID = delegate.DeviceID
 		} else {
-			return netutils.LoadDeviceInfoFromDP(delegate.ResourceName, delegate.DeviceID)
+			if dev, ok := runtimeConf.CapabilityArgs["deviceID"]; ok {
+				cniDeviceID = dev.(string)
+			}
 		}
+		return netutils.LoadDeviceInfoFromCNI(delegate.Name, cniDeviceID)
 	}
 }

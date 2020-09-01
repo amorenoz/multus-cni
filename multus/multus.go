@@ -581,7 +581,7 @@ func cmdAdd(args *skel.CmdArgs, exec invoke.Exec, kubeClient *k8s.ClientInfo) (c
 		}
 
 		//WIP
-		devinfo, err := types.GetDelegateDeviceInfo(delegate)
+		devinfo, err := types.GetDelegateDeviceInfo(delegate, rt)
 		if err != nil {
 			logging.Errorf("Error getting Device Information: %s", err)
 		}
