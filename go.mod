@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/Microsoft/go-winio v0.4.14 // indirect
-	github.com/amorenoz/network-attachment-definition-client poc/devinfo 
+	github.com/amorenoz/network-attachment-definition-client v0.0.0-20200908072513-090eb42e718e
 	github.com/containernetworking/cni v0.7.1
 	github.com/containernetworking/plugins v0.8.2
 	github.com/golang/protobuf v1.3.2 // indirect

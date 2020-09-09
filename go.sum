@@ -17,6 +17,8 @@ github.com/amorenoz/network-attachment-definition-client v0.0.0-20200527145450-4
 github.com/amorenoz/network-attachment-definition-client v0.0.0-20200527145450-4d66b52a6cab/go.mod h1:NF+IbFjQMJYCRfaUk5O9T+tybOhlU1AvYIGcVzaPFQg=
 github.com/amorenoz/network-attachment-definition-client v0.0.0-20200702093827-4b6bc15c6642 h1:dqf9BB/vDLrGbGhKFDh1PeEg73Hqv2SzLl7kD1X0zcA=
 github.com/amorenoz/network-attachment-definition-client v0.0.0-20200702093827-4b6bc15c6642/go.mod h1:NF+IbFjQMJYCRfaUk5O9T+tybOhlU1AvYIGcVzaPFQg=
+github.com/amorenoz/network-attachment-definition-client v0.0.0-20200908072513-090eb42e718e h1:y6vtlhpWgP2B+sPKELrnNVRJMIOIbTlU5tGOBRA4QrM=
+github.com/amorenoz/network-attachment-definition-client v0.0.0-20200908072513-090eb42e718e/go.mod h1:NF+IbFjQMJYCRfaUk5O9T+tybOhlU1AvYIGcVzaPFQg=
 github.com/buger/jsonparser v0.0.0-20180808090653-f4dd9f5a6b44/go.mod h1:bbYlZJ7hK1yFx9hf58LP0zeX7UjIGs20ufpu3evjr+s=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/containernetworking/cni v0.7.0 h1:1Qy7EwdC08mx5wUB0DpjCuBrk6e/uXg9yI9TvAvgox8=
