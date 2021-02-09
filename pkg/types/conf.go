@@ -152,6 +152,7 @@ func mergeCNIRuntimeConfig(runtimeConfig *RuntimeConfig, delegate *DelegateNetCo
 	} else {
 		mergedRuntimeConfig = *runtimeConfig
 	}
+	logging.Debugf("After copy %v\n", mergedRuntimeConfig)
 
 	// multus inject RuntimeConfig only in case of non MasterPlugin.
 	if delegate.MasterPlugin != true {
@@ -182,12 +183,13 @@ func mergeCNIRuntimeConfig(runtimeConfig *RuntimeConfig, delegate *DelegateNetCo
 // CreateCNIRuntimeConf create CNI RuntimeConf for a delegate. If delegate configuration
 // exists, merge data with the runtime config.
 func CreateCNIRuntimeConf(args *skel.CmdArgs, k8sArgs *K8sArgs, ifName string, rc *RuntimeConfig, delegate *DelegateNetConf) (*libcni.RuntimeConf, string) {
-	logging.Debugf("LoadCNIRuntimeConf: %v, %v, %s, %v %v", args, k8sArgs, ifName, rc, delegate)
+	logging.Debugf("CreateCNIRuntimeConf: %v", rc)
 	var cniDeviceInfoFile string
 	var delegateRc *RuntimeConfig
 
 	if delegate != nil {
 		delegateRc = mergeCNIRuntimeConfig(rc, delegate)
+		logging.Debugf("CreateCNIRuntimeConf: delegate RC is %v", delegateRc)
 		if delegateRc.CNIDeviceInfoFile != "" {
 			logging.Debugf("Warning: Existing value of CNIDeviceInfoFile will be overwritten %s", delegateRc.CNIDeviceInfoFile)
 		}
@@ -195,6 +197,8 @@ func CreateCNIRuntimeConf(args *skel.CmdArgs, k8sArgs *K8sArgs, ifName string, r
 		delegateRc.CNIDeviceInfoFile = nadutils.GetCNIDeviceInfoPath(autoDeviceInfo)
 		cniDeviceInfoFile = delegateRc.CNIDeviceInfoFile
 		logging.Debugf("Adding auto-generated CNIDeviceInfoFile: %s", delegateRc.CNIDeviceInfoFile)
+	} else {
+		delegateRc = rc
 	}
 
 	// In part, adapted from K8s pkg/kubelet/dockershim/network/cni/cni.go#buildCNIRuntimeConf
